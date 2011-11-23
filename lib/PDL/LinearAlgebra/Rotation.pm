@@ -4,7 +4,7 @@ use warnings;
 use PDL;
 use PDL::NiceSlice;
 
-our $PI=2*acos(0);
+my $PI=2*acos(0);
 
 sub rotation_matrix_axis_angle {
 	my ($u,$angle)=@_;
