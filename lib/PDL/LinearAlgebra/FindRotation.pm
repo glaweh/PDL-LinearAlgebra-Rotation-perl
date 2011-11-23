@@ -86,7 +86,7 @@ sub find_rotation {
 	# finds the rotation between two conventional cells
 	# may contain a flip to match handedness
 	# result: matrix M: c2 = M c1
-	my ($bravais,$c1,$c1s,$c1c,$c2,$c2s,$c2c,$opts)=@_;
+	my ($c1,$c1s,$c1c,$c2,$c2s,$c2c,$opts)=@_;
 	my $eps_length=0.0001;
 	my $eps_vol=0.1;
 	my $eps_angle=0.01;
