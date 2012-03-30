@@ -13,6 +13,7 @@ sub rotation_matrix_axis_angle {
 	my $r=zeroes(3,3);
 	my $cos=$angle->cos;
 	my $sin=$angle->sin;
+	$u = $u->norm;
 	$r->diagonal(0,1).=$cos + ($u * $u) * (1-$cos);
 	$r(1,0).=$u(0)*$u(1)*(1-$cos)-$u(2)*$sin;
 	$r(2,0).=$u(0)*$u(2)*(1-$cos)+$u(1)*$sin;
