@@ -223,12 +223,13 @@ sub find_rotation {
 			}
 		}
 	}
-	unless ($#rotation >= 1) {
-		print STDERR "find_rotation: not found\n";
+	my $nrot = $#rotation +1;
+	unless ($nrot > 0) {
+		print STDERR "find_rotation: not found\n" if ($DEBUG > 0);
 		return(undef);
 	}
+	print STDERR "find_rotation: success, found $nrot possible rotations!\n" if ($DEBUG > 0);
 	my $rotation = $rotation[0];
-	print STDERR "find_rotation: success!\n" if ($DEBUG > 0);
 	return($rotation);
 }
 
