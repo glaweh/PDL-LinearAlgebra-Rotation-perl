@@ -192,8 +192,15 @@ sub find_rotation {
 			print STDERR "trying: $c1_1:$c2_1 $c1_2:$c2_2\n" if ($DEBUG > 0);
 			my $rotation=rotation_sequence($c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
 			if (defined $rotation) {
-				print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
-				push @rotation,$rotation;
+				my $c1r = $c1_orig x $rotation;
+				if (check_vector_match('find_rotation',$c1r,$c2)) {
+					print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
+					push @rotation,$rotation;
+				} elsif ($DEBUG > 0) {
+					print_matrix("  Invalid rotation: ",$rotation,'    ') if ($DEBUG > 0);
+					print_matrix("    rotated: ",$c1r,'      ');
+					print_matrix("     target: ",$c2,'      ');
+				}
 			} elsif ($DEBUG > 1) {
 				print STDERR "  No rotation found.\n";
 			}
@@ -202,8 +209,15 @@ sub find_rotation {
 			$rotation=rotation_sequence(-$c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
 			if (defined $rotation) {
 				$rotation*=-1;
-				print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
-				push @rotation,$rotation;
+				my $c1r = $c1_orig x $rotation;
+				if (check_vector_match('find_rotation',$c1r,$c2)) {
+					print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
+					push @rotation,$rotation;
+				} elsif ($DEBUG > 0) {
+					print_matrix("  Invalid rotation: ",$rotation,'    ') if ($DEBUG > 0);
+					print_matrix("    rotated: ",$c1r,'      ');
+					print_matrix("     target: ",$c2,'      ');
+				}
 			} elsif ($DEBUG > 1) {
 				print STDERR "  No rotation found.\n";
 			}
@@ -214,13 +228,6 @@ sub find_rotation {
 		return(undef);
 	}
 	my $rotation = $rotation[0];
-	$c1 = $c1_orig x $rotation;
-	if ($DEBUG > 0) {
-		print_matrix("rotated: ",$c1);
-		print_matrix("target: ",$c2);
-		print_matrix("rotation: ",$rotation);
-	}
-	return(undef) unless check_vector_match('find_rotation',$c1,$c2);
 	print STDERR "find_rotation: success!\n" if ($DEBUG > 0);
 	return($rotation);
 }
