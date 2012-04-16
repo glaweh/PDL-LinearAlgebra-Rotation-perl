@@ -193,7 +193,7 @@ sub find_rotation {
 			my $rotation=rotation_sequence($c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
 			if (defined $rotation) {
 				my $c1r = $c1_orig x $rotation;
-				if (check_vector_match('find_rotation',$c1r,$c2)) {
+				if (check_vector_match('  find_rotation',$c1r,$c2)) {
 					print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
 					push @rotation,$rotation;
 				} elsif ($DEBUG > 0) {
@@ -210,7 +210,7 @@ sub find_rotation {
 			if (defined $rotation) {
 				$rotation*=-1;
 				my $c1r = $c1_orig x $rotation;
-				if (check_vector_match('find_rotation',$c1r,$c2)) {
+				if (check_vector_match('  find_rotation',$c1r,$c2)) {
 					print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
 					push @rotation,$rotation;
 				} elsif ($DEBUG > 0) {
