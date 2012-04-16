@@ -171,10 +171,16 @@ sub find_rotation {
 	if ($#c2_1_candidates < 0) {
 		print STDERR "no c2_1_candidates to match\n";
 		return(undef);
+	} elsif ($DEBUG > 1) {
+		print STDERR "c2_1_candidates:\n";
+		print STDERR "  $c1_1: " . join(', ',@c2_1_candidates) . "\n";
 	}
 	if ($#c2_2_candidates < 0) {
 		print STDERR "no c2_2_candidates to match\n";
 		return(undef);
+	} elsif ($DEBUG > 1) {
+		print STDERR "c2_2_candidates:\n";
+		print STDERR "  $c1_2: " . join(', ',@c2_2_candidates) . "\n";
 	}
 	my $rotation;
 	foreach my $c2_1 (@c2_1_candidates) {
