@@ -185,29 +185,35 @@ sub find_rotation {
 		print STDERR "c2_2_candidates:\n";
 		print STDERR "  $c1_2: " . join(', ',@c2_2_candidates) . "\n";
 	}
-	my $rotation;
+	my @rotation;
 	foreach my $c2_1 (@c2_1_candidates) {
-		last if (defined $rotation);
 		foreach my $c2_2 (@c2_2_candidates) {
 			next if ($c2_1 == $c2_2);
 			print STDERR "trying: $c1_1:$c2_1 $c1_2:$c2_2\n" if ($DEBUG > 0);
-			$rotation=rotation_sequence($c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
-			last if (defined $rotation);
+			my $rotation=rotation_sequence($c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
+			if (defined $rotation) {
+				print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
+				push @rotation,$rotation;
+			} elsif ($DEBUG > 1) {
+				print STDERR "  No rotation found.\n";
+			}
 
 			print STDERR "find_rotation: trying with inverted c1\n" if ($DEBUG > 0);
 			$rotation=rotation_sequence(-$c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
 			if (defined $rotation) {
 				$rotation*=-1;
-			} else {
-				print STDERR "find_rotation: inversion did not work, either.\n" if ($DEBUG > 0);
+				print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
+				push @rotation,$rotation;
+			} elsif ($DEBUG > 1) {
+				print STDERR "  No rotation found.\n";
 			}
-			last if (defined $rotation);
 		}
 	}
-	unless (defined $rotation) {
+	unless ($#rotation >= 1) {
 		print STDERR "find_rotation: not found\n";
 		return(undef);
 	}
+	my $rotation = $rotation[0];
 	$c1 = $c1_orig x $rotation;
 	if ($DEBUG > 0) {
 		print_matrix("rotated: ",$c1);
