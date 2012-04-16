@@ -228,7 +228,7 @@ sub find_rotation {
 		print STDERR "find_rotation: not found\n" if ($DEBUG > 0);
 		return(undef);
 	}
-	print STDERR "find_rotation: success, found $nrot possible rotations!\n" if ($DEBUG > 0);
+	print_matrix("find_rotation: success, found $nrot possible rotations!",cat(@rotation),'  ') if ($DEBUG > 0);
 	my $rotation = $rotation[0];
 	return($rotation);
 }
