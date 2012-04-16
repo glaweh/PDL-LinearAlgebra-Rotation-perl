@@ -9,10 +9,13 @@ our $DEBUG=0;
 my $PI=2*acos(0);
 
 sub print_matrix {
-	my ($prefix,$matrix)=@_;
+	my ($prefix,$matrix,$indent)=@_;
 	my $m=$matrix->copy;
+	$indent='' unless (defined $indent);
 	$m->flat->where(abs($m) < 0.00001).=0;
-	print STDERR $prefix . $m . "\n";
+	my $mp = '' . $m . '';
+	$mp =~ s/(^|\n)/$1$indent/sg;
+	print STDERR $prefix . $mp . "\n";
 }
 
 sub check_vector_match {
