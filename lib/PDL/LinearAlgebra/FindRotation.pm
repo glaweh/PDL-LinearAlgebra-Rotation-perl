@@ -229,8 +229,7 @@ sub find_rotation {
 		return(undef);
 	}
 	print_matrix("find_rotation: success, found $nrot possible rotations!",cat(@rotation),'  ') if ($DEBUG > 0);
-	my $rotation = $rotation[0];
-	return($rotation);
+	return(\@rotation);
 }
 
 our (@ISA, @EXPORT_OK);
