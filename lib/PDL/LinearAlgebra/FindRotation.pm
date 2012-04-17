@@ -89,14 +89,13 @@ sub find_rotation {
 	# finds the rotation between two conventional cells
 	# may contain a flip to match handedness
 	# result: matrix M: c2 = M c1
-	my ($c1,$c1s,$c1c,$c2,$c2s,$c2c,$opts)=@_;
+	my %opts=%{pop()} if (ref $_[-1] eq 'HASH');
+	my ($c1,$c1s,$c1c,$c2,$c2s,$c2c)=@_;
 	my $eps_length=0.0001;
 	my $eps_vol=0.1;
 	my $eps_angle=0.01;
-	if (defined $opts and ref $opts eq 'HASH') {
-		$eps_length=$opts->{eps_length} if (defined $opts->{eps_length});
-		$eps_vol   =$opts->{eps_vol}    if (defined $opts->{eps_vol});
-	}
+	$eps_length=$opts{eps_length} if (defined $opts{eps_length});
+	$eps_vol   =$opts{eps_vol}    if (defined $opts{eps_vol});
 	my ($c1l,$c1n,$c1a,$c1v);
 	my ($c2l,$c2n,$c2a,$c2v);
 	$c1l = sqrt(inner($c1,$c1));
