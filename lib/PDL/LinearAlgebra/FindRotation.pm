@@ -137,11 +137,14 @@ sub find_rotation {
 	}
 	print STDERR "centered/special: $centered/$special_axis\n" if ($DEBUG > 1);
 
+	my $c12_match=long(abs($c1l-$c2l->dummy(0)) < $eps_length);
+	print_matrix('c12_match',$c12_match) if ($DEBUG > 1);
+
 	my $c1_orig = $c1;
 	my ($c1_1,@c2_1_candidates);
 	my ($c1_2,@c2_2_candidates);
 	if ($special_axis) {
-		if (abs($c1l($c1s)-$c2l($c2s)) > $eps_length) {
+		unless ($c12_match($c1s,$c2s)) {
 			print STDERR "find_rotation: special axis have different lengths: " . $c1l($c1s) . " / " . $c2l($c2s) . "\n";
 			return(undef);
 		}
@@ -150,7 +153,7 @@ sub find_rotation {
 		if ($centered and ($c1c!=$c1s)) {
 			$c1_2 = (grep { ($_ != $c1s) and ($_ != $c1c) } 0 .. 2)[0];
 			@c2_2_candidates = grep { ($_ != $c2s) and ($_ != $c2c) } 0 .. 2;
-			if (abs($c1l($c1_2)-$c2l($c2_2_candidates[0]))>0.001) {
+			unless ($c12_match($c1_2,$c2_2_candidates[0])) {
 				print STDERR "find_rotation: axis to-match have different lengths: " . $c1l($c1_2) . " / " . $c2l($c2_2_candidates[0]) . "\n";
 				return(undef);
 			}
