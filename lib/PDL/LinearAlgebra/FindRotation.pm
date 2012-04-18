@@ -90,7 +90,7 @@ sub find_rotation {
 	# may contain a flip to match handedness
 	# result: matrix M: c2 = M c1
 	my %opts=%{pop()} if (ref $_[-1] eq 'HASH');
-	my ($c1,$c1s,$c1c,$c2,$c2s,$c2c)=@_;
+	my ($c1,$c2,@constraints)=@_;
 	my $eps_length=0.0001;
 	my $eps_vol=0.1;
 	my $eps_angle=0.01;
@@ -126,104 +126,56 @@ sub find_rotation {
 		print STDERR "find_rotation: conv_cell volume match: $c1va\n" if ($DEBUG > 0);
 	}
 
-	my ($centered,$special_axis);
-	# check centering
-	if (($centered=(defined $c1c ? 1 : 0)) xor (my $c2=defined $c2c)) {
-		print STDERR "find_rotation: conv_cell centering setting mismatch: $centered/$c2\n";
-		return(undef);
-	}
-	if (($special_axis=(defined $c1s ? 1 : 0)) xor (my $s2=defined $c2s)) {
-		print STDERR "find_rotation: conv_cell special axis setting mismatch: $special_axis/$s2\n";
-		return(undef);
-	}
-	print STDERR "centered/special: $centered/$special_axis\n" if ($DEBUG > 1);
-
 	my $c12_match=long(abs($c1l-$c2l->dummy(0)) < $eps_length);
 	print_matrix('c12_match',$c12_match) if ($DEBUG > 1);
 
-	my $c1_orig = $c1;
-	my ($c1_1,@c2_1_candidates);
-	my ($c1_2,@c2_2_candidates);
-	if ($special_axis) {
-		unless ($c12_match($c1s,$c2s)) {
-			print STDERR "find_rotation: special axis have different lengths: " . $c1l($c1s) . " / " . $c2l($c2s) . "\n";
+	my $c12_free=$c12_match->copy;
+	foreach my $constraint (@constraints) {
+		if ($c12_match(@{$constraint}) != 1) {
+			print STDERR "Failed fulfilling constraint: c1l($constraint->[0]) == c2l($constraint->[1])\n";
+			print STDERR "  " . $c1l($constraint->[0]) . " != " . $c2l($constraint->[1]) . "\n";
 			return(undef);
+		} elsif ($DEBUG > 2) {
+			print STDERR "Fulfilled constraint: c1l($constraint->[0]) == c2l($constraint->[1])\n";
 		}
-		$c1_1=$c1s;
-		@c2_1_candidates=($c2s);
-		if ($centered and ($c1c!=$c1s)) {
-			$c1_2 = (grep { ($_ != $c1s) and ($_ != $c1c) } 0 .. 2)[0];
-			@c2_2_candidates = grep { ($_ != $c2s) and ($_ != $c2c) } 0 .. 2;
-			unless ($c12_match($c1_2,$c2_2_candidates[0])) {
-				print STDERR "find_rotation: axis to-match have different lengths: " . $c1l($c1_2) . " / " . $c2l($c2_2_candidates[0]) . "\n";
-				return(undef);
-			}
-		} else {
-			# find by matching lengths
-			$c1_2    = (grep { ($_ != $c1s) } 0 .. 2)[0];
-			my $c2mask = (abs($c2l-$c1l($c1_2)) < $eps_length);
-			$c2mask($c2s).=0;
-			@c2_2_candidates = which($c2mask)->list;
+		$c12_free($constraint->[0],:).=0;
+		$c12_free(:,$constraint->[1]).=0;
+		$c12_free(@{$constraint}).=1;
+	}
+	print_matrix('c12_free',$c12_free) if ($DEBUG > 1);
+	my @i_0=which($c12_free(0,:;-))->list;
+	my @i_1=which($c12_free(1,:;-))->list;
+	my @try_axis_map;
+	foreach my $i_0 (@i_0) {
+		foreach my $i_1 (@i_1) {
+			next if ($i_0 == $i_1);
+			push @try_axis_map,[ 0, $i_0, 1, $i_1 ];
 		}
-	} else {
-		my $c2mask;
-		$c1_1=0;
-		$c2mask = (abs($c2l-$c1l(0)) < $eps_length);
-		@c2_1_candidates = which($c2mask)->list;
-		$c1_2=1;
-		$c2mask = (abs($c2l-$c1l(1)) < $eps_length);
-		@c2_2_candidates = which($c2mask)->list;
+	}
+	if ($#try_axis_map < 0) {
+		print STDERR "No possible axis mapping found!\n";
+		return(undef);
 	}
 
-	if ($#c2_1_candidates < 0) {
-		print STDERR "no c2_1_candidates to match\n";
-		return(undef);
-	} elsif ($DEBUG > 1) {
-		print STDERR "c2_1_candidates:\n";
-		print STDERR "  $c1_1: " . join(', ',@c2_1_candidates) . "\n";
-	}
-	if ($#c2_2_candidates < 0) {
-		print STDERR "no c2_2_candidates to match\n";
-		return(undef);
-	} elsif ($DEBUG > 1) {
-		print STDERR "c2_2_candidates:\n";
-		print STDERR "  $c1_2: " . join(', ',@c2_2_candidates) . "\n";
-	}
 	my @rotation;
-	foreach my $c2_1 (@c2_1_candidates) {
-		foreach my $c2_2 (@c2_2_candidates) {
-			next if ($c2_1 == $c2_2);
-			print STDERR "trying: $c1_1:$c2_1 $c1_2:$c2_2\n" if ($DEBUG > 0);
-			my $rotation=rotation_sequence($c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
+	foreach my $axis_map (@try_axis_map) {
+		print STDERR "trying axis mapping $axis_map->[0]:$axis_map->[1] $axis_map->[2]:$axis_map->[3]\n" if ($DEBUG > 1);
+		foreach my $hand_prefactor (1,-1) {
+			print STDERR "  handedness prefactor: $hand_prefactor\n" if ($DEBUG > 1);
+			my $rotation = rotation_sequence($hand_prefactor*$c1,$c2,@{$axis_map});
 			if (defined $rotation) {
-				my $c1r = $c1_orig x $rotation;
-				if (check_vector_match('  find_rotation',$c1r,$c2)) {
-					print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
+				$rotation*=$hand_prefactor;
+				my $c1r = $c1 x $rotation;
+				if (check_vector_match('    find_rotation',$c1r,$c2)) {
+					print_matrix("    Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
 					push @rotation,$rotation;
 				} elsif ($DEBUG > 0) {
-					print_matrix("  Invalid rotation: ",$rotation,'    ') if ($DEBUG > 0);
-					print_matrix("    rotated: ",$c1r,'      ');
-					print_matrix("     target: ",$c2,'      ');
+					print_matrix("    Invalid rotation: ",$rotation,'    ') if ($DEBUG > 0);
+					print_matrix("      rotated: ",$c1r,'      ');
+					print_matrix("       target: ",$c2,'      ');
 				}
 			} elsif ($DEBUG > 1) {
-				print STDERR "  No rotation found.\n";
-			}
-
-			print STDERR "find_rotation: trying with inverted c1\n" if ($DEBUG > 0);
-			$rotation=rotation_sequence(-$c1,$c2,$c1_1,$c2_1,$c1_2,$c2_2);
-			if (defined $rotation) {
-				$rotation*=-1;
-				my $c1r = $c1_orig x $rotation;
-				if (check_vector_match('  find_rotation',$c1r,$c2)) {
-					print_matrix("  Found rotation: ",$rotation,'    ') if ($DEBUG > 0);
-					push @rotation,$rotation;
-				} elsif ($DEBUG > 0) {
-					print_matrix("  Invalid rotation: ",$rotation,'    ') if ($DEBUG > 0);
-					print_matrix("    rotated: ",$c1r,'      ');
-					print_matrix("     target: ",$c2,'      ');
-				}
-			} elsif ($DEBUG > 1) {
-				print STDERR "  No rotation found.\n";
+				print STDERR "    No rotation found.\n";
 			}
 		}
 	}
