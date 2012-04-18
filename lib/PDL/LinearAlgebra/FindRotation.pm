@@ -113,6 +113,8 @@ sub find_rotation {
 		print STDERR "c2l: $c2l\n";
 		print STDERR "c1a: $c1a\n";
 		print STDERR "c2a: $c2a\n";
+		print STDERR "c1v: " . det($c1) . "\n";
+		print STDERR "c2v: " . det($c2) . "\n";
 	}
 
 	my $c1va = $c1v->abs;
