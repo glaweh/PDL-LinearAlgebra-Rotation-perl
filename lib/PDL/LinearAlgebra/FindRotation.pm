@@ -21,6 +21,8 @@ sub print_matrix {
 sub check_vector_match {
 	my ($prefix,$c1,$c2)=@_;
 	my $match=whichND(($c1->dummy(1)-$c2)->abs->sumover < 0.001);
+	print STDERR "match: $match\n" if ($DEBUG > 2);
+	return(0) unless ($match->nelem() > 0);
 	my $c2_to_c1=zeroes(long,3)-1;
 	$c2_to_c1($match(0,:)).=$match(1,:);
 	print STDERR "$prefix: c2_to_c1: $c2_to_c1\n" if ($DEBUG > 1);
