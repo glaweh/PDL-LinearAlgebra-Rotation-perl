@@ -64,8 +64,12 @@ sub rotation_matrix_vec_vec_axis {
 	my $v2p = $v2-($v2a*$axis);
 	$v1p/=sqrt(inner($v1p,$v1p));
 	$v2p/=sqrt(inner($v2p,$v2p));
-	my $angle=acos(inner($v1p,$v2p));
-	return(identity(3)) if ($angle < 0.000001);
+	my $ip=inner($v1p,$v2p);
+	$ip.=-1 if ($ip < -1);
+	$ip.=1 if ($ip > 1);
+	my $angle=acos($ip);
+	# print STDERR "angle: $angle\n";
+	return(identity(3)) if (abs($angle) < 0.000001);
 	my $cp=crossp($v1p,$v2p);
 	if (inner($axis,$cp) > 0) {
 		$angle=-$angle;
